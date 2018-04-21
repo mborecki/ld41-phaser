@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser-ce'
 import Player from '../sprites/actors/player';
 import { Tile, TILE } from '../tile';
-import { SIGHT_RANGE } from '../config';
+import { SIGHT_RANGE, ACTIONS_PER_TURN } from '../config';
 import Wall from '../sprites/tiles/wall';
 import EmptyTile from '../sprites/tiles/empty';
 import SelectedActionsPanel from '../sprites/ui/selected-actions-panel';
@@ -9,6 +9,7 @@ import AvailableActionsPanel from '../sprites/ui/available-actions-panel';
 import { ACTION } from '../action';
 import { moveForward, moveBack } from '../move';
 import { turn, TURN } from '../rotation';
+import Actor from '../actor';
 
 export class GameState extends Phaser.State {
 
@@ -121,43 +122,57 @@ export class GameState extends Phaser.State {
         })
 
         this.selectedActionsPanel.onConfirmed.add((actions: ACTION[]) => {
-            this.executePlayerActions(actions);
+            this.player.actions = actions
             this.selectedActionsPanel.clearList();
+            this.executeTurn();
         });
     }
 
-    executePlayerActions(actions: ACTION[]) {
-        actions.forEach(action => {
-            console.log(ACTION[action]);
-            switch (action) {
-                case ACTION.FORWARD:
-                    this.player.mapMove(moveForward(
-                        [this.player.mapX, this.player.mapY],
-                        this.player.mapRotation
-                    ));
-                    break;
+    executeTurn() {
+        let actionIndex = 0;
 
-                case ACTION.BACK:
-                    this.player.mapMove(moveBack(
-                        [this.player.mapX, this.player.mapY],
-                        this.player.mapRotation
-                    ));
-                    break;
-
-                case ACTION.TURN_LEFT:
-                    this.player.mapRotation = turn(this.player.mapRotation, TURN.LEFT)
-                    break;
-
-                case ACTION.TURN_RIGHT:
-                    this.player.mapRotation = turn(this.player.mapRotation, TURN.RIGHT)
-                    break;
-
-                case ACTION.TURN_AROUND:
-                    this.player.mapRotation = turn(this.player.mapRotation, TURN.AROUND);
-                    break;
-            }
-
+        let executeActionRound = () => {
+            this.executeActorAction(this.player);
             this.updateTilesSprites();
-        })
+
+            actionIndex++;
+            if (actionIndex < ACTIONS_PER_TURN) {
+                executeActionRound();
+            }
+        };
+
+        executeActionRound();
+    }
+
+    executeActorAction(actor: Actor) {
+        let action = actor.nextAction();
+        console.log(ACTION[action], actor);
+        switch (action) {
+            case ACTION.FORWARD:
+                actor.mapMove(moveForward(
+                    [actor.mapX, actor.mapY],
+                    actor.mapRotation
+                ));
+                break;
+
+            case ACTION.BACK:
+                actor.mapMove(moveBack(
+                    [actor.mapX, actor.mapY],
+                    actor.mapRotation
+                ));
+                break;
+
+            case ACTION.TURN_LEFT:
+                actor.mapRotation = turn(actor.mapRotation, TURN.LEFT)
+                break;
+
+            case ACTION.TURN_RIGHT:
+                actor.mapRotation = turn(actor.mapRotation, TURN.RIGHT)
+                break;
+
+            case ACTION.TURN_AROUND:
+                actor.mapRotation = turn(actor.mapRotation, TURN.AROUND);
+                break;
+        }
     }
 }

@@ -1,5 +1,6 @@
 import { ACTION } from "../../action";
 import ActionSprite from "./action/action-sprite";
+import { ACTIONS_PER_TURN } from "../../config";
 
 export default class SelectedActionsPanel extends Phaser.Sprite {
 
@@ -20,8 +21,14 @@ export default class SelectedActionsPanel extends Phaser.Sprite {
         this.addChild(this.confirmButton);
 
         this.confirmButton.events.onInputDown.add(() => {
-            this.onConfirmed.dispatch(this.actions);
+            if (this.confirmButton.visible) {
+                this.onConfirmed.dispatch(this.actions);
+            } else {
+                throw 'Confirm Button invisible!';
+            }
         });
+
+        this.updateList();
     }
 
     clearList() {
@@ -30,8 +37,10 @@ export default class SelectedActionsPanel extends Phaser.Sprite {
     }
 
     addAction(action: ACTION) {
-        this.actions.push(action);
-        this.updateList();
+        if (this.actions.length < ACTIONS_PER_TURN) {
+            this.actions.push(action);
+            this.updateList();
+        }
     }
 
     updateList() {
@@ -49,5 +58,7 @@ export default class SelectedActionsPanel extends Phaser.Sprite {
             this.actionSpriteList.add(sprite);
 
         });
+
+        this.confirmButton.visible = this.actions.length === ACTIONS_PER_TURN;
     }
 }

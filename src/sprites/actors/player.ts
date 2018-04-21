@@ -1,11 +1,15 @@
 import tileToCanvas from "../../tileToCanvas";
 import { ROTATION } from "../../rotation";
+import { ACTION } from "../../action";
+import Actor from "../../actor";
 
-export default class Player extends Phaser.Sprite {
+export default class Player extends Phaser.Sprite implements Actor {
 
     mapX: number;
     mapY: number;
     private _mapRotation;
+
+    actions: ACTION[];
 
     set mapRotation(v: ROTATION) {
         if (v !== this._mapRotation) {
@@ -48,5 +52,13 @@ export default class Player extends Phaser.Sprite {
         this.mapY = y;
         this.x = tileToCanvas(x, y).x;
         this.y = tileToCanvas(x, y).y;
+    }
+
+    nextAction(shift = true): ACTION {
+        if (shift) {
+            return this.actions.shift();
+        } else {
+            return this.actions[0];
+        }
     }
 }
