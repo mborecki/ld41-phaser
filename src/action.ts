@@ -3,5 +3,6 @@ export enum ACTION {
     BACK,
     TURN_LEFT,
     TURN_RIGHT,
-    TURN_AROUND
+    TURN_AROUND,
+    SHOOT
 }

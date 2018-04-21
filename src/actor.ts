@@ -8,6 +8,7 @@ export default interface Actor{
     mapMove([x, y]: [number, number]): void;
     mapMoveDirection(ROTATION);
     nextAction(shift?: boolean): ACTION;
+    kill();
 
     hasTag(tag: TAG) : boolean;
 }

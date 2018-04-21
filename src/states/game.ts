@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser-ce'
 import Player from '../sprites/actors/player';
 import { Tile, TILE, isBlocker } from '../tile';
-import { SIGHT_RANGE, ACTIONS_PER_TURN } from '../config';
+import { SIGHT_RANGE, ACTIONS_PER_TURN, INTERACTION } from '../config';
 import Wall from '../sprites/tiles/wall';
 import EmptyTile from '../sprites/tiles/empty';
 import SelectedActionsPanel from '../sprites/ui/selected-actions-panel';
@@ -29,6 +29,8 @@ export class GameState extends Phaser.State {
 
     player: Player;
     enemies: Enemy[] = [];
+
+    isOver = false;
 
 
     init() {
@@ -66,6 +68,11 @@ export class GameState extends Phaser.State {
 
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON);
 
+        this.player.events.onKilled.add(() => {
+            this.isOver = true;
+            console.log('   -----     GAME OVER   ------   ');
+        })
+
         window['player'] = this.player;
     }
 
@@ -100,7 +107,6 @@ export class GameState extends Phaser.State {
     }
 
     updateTilesSprites() {
-        console.log('updateTilesSprites', this.player.mapX, this.player.mapY)
         for (let i = this.player.mapX - SIGHT_RANGE; i <= this.player.mapX + SIGHT_RANGE; i++)
             for (let j = this.player.mapY - SIGHT_RANGE; j <= this.player.mapY + SIGHT_RANGE; j++) {
                 if (this.renderedTiles.find(rt => {
@@ -110,8 +116,6 @@ export class GameState extends Phaser.State {
                 let tile = this.tiles.find(t => {
                     return t.x === i && t.y === j;
                 });
-
-                // console.log(i,j, tile)
 
                 let sprite: Phaser.Sprite;
                 if (tile) {
@@ -202,7 +206,6 @@ export class GameState extends Phaser.State {
     executeActorAction(actor: Actor) {
         let action = actor.nextAction();
         let newPos: [number, number];
-        console.log(ACTION[action], actor);
         switch (action) {
             case ACTION.FORWARD:
                 newPos = moveForward(
@@ -240,16 +243,22 @@ export class GameState extends Phaser.State {
         });
 
         if (actor) {
-            if (actor.hasTag(TAG.ROOTED)) return false;
+            if (INTERACTION === 'push') {
+                if (actor.hasTag(TAG.ROOTED)) return false;
 
-            let canPush = this.canPushActor(actor, direction);
+                let canPush = this.canPushActor(actor, direction);
 
-            if (canPush) {
-                actor.mapMoveDirection(direction);
+                if (canPush) {
+                    actor.mapMoveDirection(direction);
+                }
+
+                return canPush
             }
 
-
-            return canPush
+            if (INTERACTION === 'attack') {
+                actor.kill();
+                return true;
+            }
         }
 
         let tile = this.tiles.find(t => {

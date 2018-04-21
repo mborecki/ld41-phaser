@@ -50,7 +50,6 @@ export default class SelectedActionsPanel extends Phaser.Sprite {
             let sprite = new ActionSprite(this.game, 10 + index*20, 50, action);
 
             sprite.onSelected.add(() => {
-                console.log('DELETE', index);
                 this.actions.splice(index, 1);
                 this.updateList();
             });

@@ -18,5 +18,8 @@ export default function getActionSpriteKey(action: ACTION) : string {
         case ACTION.TURN_AROUND:
             return 'action-around';
 
+        case ACTION.SHOOT:
+            return 'action-shoot';
+
     }
 }
