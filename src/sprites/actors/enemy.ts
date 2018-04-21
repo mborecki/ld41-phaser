@@ -1,11 +1,9 @@
-import tileToCanvas from "../../tileToCanvas";
+import Actor, { TAG } from "../../actor";
 import { ROTATION } from "../../rotation";
 import { ACTION } from "../../action";
-import Actor, { TAG } from "../../actor";
+import tileToCanvas from "../../tileToCanvas";
 
-export default class Player extends Phaser.Sprite implements Actor {
-
-
+export default abstract class Enemy extends Phaser.Sprite implements Actor {
     _mapX: number;
 
     get mapX() {
@@ -27,31 +25,30 @@ export default class Player extends Phaser.Sprite implements Actor {
         this.y = tileToCanvas(this._mapY, this._mapY).y;
     }
 
-    private _mapRotation;
-
-    actions: ACTION[];
+    spriteKey: string;
 
     tags: TAG[] = [
-        TAG.PLAYER
+        TAG.ENEMY
     ]
 
+    private _mapRotation;
     set mapRotation(v: ROTATION) {
         if (v !== this._mapRotation) {
             switch (v) {
                 case ROTATION.N:
-                    this.loadTexture('player-n', 0);
+                    this.loadTexture(`${this.spriteKey}-n`, 0);
                     break;
 
                 case ROTATION.E:
-                    this.loadTexture('player-e', 0);
+                    this.loadTexture(`${this.spriteKey}-e`, 0);
                     break;
 
                 case ROTATION.S:
-                    this.loadTexture('player-s', 0);
+                    this.loadTexture(`${this.spriteKey}-s`, 0);
                     break;
 
                 case ROTATION.W:
-                    this.loadTexture('player-w', 0);
+                    this.loadTexture(`${this.spriteKey}-w`, 0);
                     break;
             }
 
@@ -59,23 +56,22 @@ export default class Player extends Phaser.Sprite implements Actor {
         }
     }
 
-    get mapRotation() {
-        return this._mapRotation;
-    }
-
-    constructor(game: Phaser.Game, x: number, y: number, rotation: ROTATION = ROTATION.N) {
+    constructor(game: Phaser.Game, x: number, y: number, rotation: ROTATION = ROTATION.N, key: string) {
         super(game, tileToCanvas(x, y).x, tileToCanvas(x, y).y);
 
+        this.spriteKey = key;
         this.mapX = x;
         this.mapY = y;
-        this.mapRotation = rotation
+        this.mapRotation = rotation;
+    }
+
+    get mapRotation() {
+        return this._mapRotation;
     }
 
     mapMove([x, y]) {
         this.mapX = x;
         this.mapY = y;
-        this.x = tileToCanvas(x, y).x;
-        this.y = tileToCanvas(x, y).y;
     }
 
     mapMoveDirection(direction: ROTATION) {
@@ -95,13 +91,7 @@ export default class Player extends Phaser.Sprite implements Actor {
         }
     }
 
-    nextAction(shift = true): ACTION {
-        if (shift) {
-            return this.actions.shift();
-        } else {
-            return this.actions[0];
-        }
-    }
+    abstract nextAction(shift?: boolean): ACTION
 
     hasTag(tag) {
         return this.tags.indexOf(tag) > -1;

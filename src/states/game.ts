@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser-ce'
 import Player from '../sprites/actors/player';
-import { Tile, TILE } from '../tile';
+import { Tile, TILE, isBlocker } from '../tile';
 import { SIGHT_RANGE, ACTIONS_PER_TURN } from '../config';
 import Wall from '../sprites/tiles/wall';
 import EmptyTile from '../sprites/tiles/empty';
@@ -8,8 +8,10 @@ import SelectedActionsPanel from '../sprites/ui/selected-actions-panel';
 import AvailableActionsPanel from '../sprites/ui/available-actions-panel';
 import { ACTION } from '../action';
 import { moveForward, moveBack } from '../move';
-import { turn, TURN } from '../rotation';
-import Actor from '../actor';
+import { turn, TURN, ROTATION } from '../rotation';
+import Actor, { TAG } from '../actor';
+import Enemy from '../sprites/actors/enemy';
+import TestDummy from '../sprites/actors/test-dummy';
 
 export class GameState extends Phaser.State {
 
@@ -26,6 +28,7 @@ export class GameState extends Phaser.State {
     renderedTiles: [number, number][] = [];
 
     player: Player;
+    enemies: Enemy[] = [];
 
 
     init() {
@@ -47,6 +50,7 @@ export class GameState extends Phaser.State {
 
         this.initUI();
         this.initPlayer();
+        this.initEnemies();
         this.initTiles();
         this.updateTilesSprites();
     }
@@ -71,6 +75,21 @@ export class GameState extends Phaser.State {
             y: 2,
             type: TILE.WALL
         });
+    }
+
+    initEnemies() {
+        this.addEnemy(TestDummy, 0, 0, ROTATION.S);
+        this.addEnemy(TestDummy, 3, 2, ROTATION.E);
+        this.addEnemy(TestDummy, 3, 1, ROTATION.E);
+        this.addEnemy(TestDummy, 5, 3, ROTATION.N);
+        this.addEnemy(TestDummy, 10, 4, ROTATION.W);
+    }
+
+    addEnemy(enemyClass, x: number, y: number, rotation: ROTATION) {
+        let enemy = new enemyClass(this.game, x, y, rotation) as Enemy;
+
+        this.actorsLayer.add(enemy);
+        this.enemies.push(enemy);
     }
 
     updateTilesSprites() {
@@ -132,13 +151,42 @@ export class GameState extends Phaser.State {
         let actionIndex = 0;
 
         let executeActionRound = () => {
-            this.executeActorAction(this.player);
-            this.updateTilesSprites();
 
-            actionIndex++;
-            if (actionIndex < ACTIONS_PER_TURN) {
-                executeActionRound();
+            let fns = [];
+
+            fns.push(() => {
+                this.executeActorAction(this.player);
+                this.updateTilesSprites();
+            });
+
+            this.enemies.forEach((enemy) => {
+                // debugger;
+
+                fns.push(() => {
+                    this.executeActorAction(enemy);
+                });
+            })
+
+            // debugger;
+            let executeFn = () => {
+                let nextFn = fns.shift();
+                // debugger;
+
+                if (nextFn) {
+                    nextFn();
+                    setTimeout(() => {
+                        executeFn();
+                    }, 100);
+                } else {
+                    actionIndex++;
+                    if (actionIndex < ACTIONS_PER_TURN) {
+                        executeActionRound();
+                    }
+                }
             }
+
+            executeFn();
+
         };
 
         executeActionRound();
@@ -146,20 +194,23 @@ export class GameState extends Phaser.State {
 
     executeActorAction(actor: Actor) {
         let action = actor.nextAction();
+        let newPos: [number, number];
         console.log(ACTION[action], actor);
         switch (action) {
             case ACTION.FORWARD:
-                actor.mapMove(moveForward(
+                newPos = moveForward(
                     [actor.mapX, actor.mapY],
                     actor.mapRotation
-                ));
-                break;
-
+                )
             case ACTION.BACK:
-                actor.mapMove(moveBack(
+                newPos = newPos || moveBack(
                     [actor.mapX, actor.mapY],
                     actor.mapRotation
-                ));
+                )
+
+                if (this.validateNewPosition(newPos, actor.mapRotation)) {
+                    actor.mapMove(newPos);
+                }
                 break;
 
             case ACTION.TURN_LEFT:
@@ -174,5 +225,63 @@ export class GameState extends Phaser.State {
                 actor.mapRotation = turn(actor.mapRotation, TURN.AROUND);
                 break;
         }
+    }
+
+    validateNewPosition([x, y]: [number, number], direction: ROTATION): boolean {
+        let actor: Actor = [...this.enemies, this.player].find(a => {
+            return a.mapX === x && a.mapY === y;
+        });
+
+        if (actor) {
+            if (actor.hasTag(TAG.ROOTED)) return false;
+
+            let canPush = this.canPushActor(actor, direction);
+
+            if (canPush) {
+                actor.mapMoveDirection(direction);
+            }
+
+
+            return canPush
+        }
+
+        return true;
+    }
+
+    canPushActor(actor: Actor, diraction: ROTATION): boolean {
+        let pushTarget;
+
+        switch (diraction) {
+            case ROTATION.N:
+                pushTarget = [actor.mapX, actor.mapY - 1];
+                break;
+
+            case ROTATION.E:
+                pushTarget = [actor.mapX + 1, actor.mapY];
+                break;
+
+            case ROTATION.S:
+                pushTarget = [actor.mapX, actor.mapY + 1];
+                break;
+
+            case ROTATION.W:
+                pushTarget = [actor.mapX - 1, actor.mapY];
+                break;
+        }
+
+        return this.isEmpty(pushTarget);
+
+    }
+
+    isEmpty([x,y]): boolean {
+        let player = this.player.mapX === x && this.player.mapY === y;
+        let enemy = this.enemies.find(e => {
+            return e.mapX === x && e.mapY === y;
+        });
+        let blocker = this.tiles.find(t => {
+            return t.x === x && t.y === y && isBlocker(t);
+        })
+
+        return !(player || enemy || blocker);
     }
 }

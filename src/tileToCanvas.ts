@@ -6,3 +6,5 @@ export default function tileToCanvas(x: number, y: number) : {x: number, y: numb
         y: MAP_OFFSET_Y + y * TILE_HEIGHT
     }
 }
+
+

@@ -18,6 +18,11 @@ export class BootState extends Phaser.State {
         this.game.load.spritesheet('player-w', './assets/placeholders/placeholders_04.png', 16, 16);
 
 
+        this.game.load.spritesheet('test-dummy-n', './assets/placeholders/placeholders_05.png', 16, 16);
+        this.game.load.spritesheet('test-dummy-e', './assets/placeholders/placeholders_06.png', 16, 16);
+        this.game.load.spritesheet('test-dummy-s', './assets/placeholders/placeholders_07.png', 16, 16);
+        this.game.load.spritesheet('test-dummy-w', './assets/placeholders/placeholders_08.png', 16, 16);
+
 
         this.game.load.spritesheet('wall', './assets/placeholders/placeholders_09.png', 16, 16);
         this.game.load.spritesheet('empty-tile', './assets/placeholders/placeholders_10.png', 16, 16);
