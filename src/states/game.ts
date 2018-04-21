@@ -70,15 +70,22 @@ export class GameState extends Phaser.State {
     }
 
     initTiles() {
-        this.tiles.push({
-            x: 1,
-            y: 2,
-            type: TILE.WALL
-        });
+        this.tiles.push(
+            {
+                x: 1,
+                y: 2,
+                type: TILE.WALL
+            },
+            {
+                x: 3,
+                y: 0,
+                type: TILE.WALL
+            }
+        );
     }
 
     initEnemies() {
-        this.addEnemy(TestDummy, 0, 0, ROTATION.S);
+        this.addEnemy(TestDummy, 1, 0, ROTATION.S);
         this.addEnemy(TestDummy, 3, 2, ROTATION.E);
         this.addEnemy(TestDummy, 3, 1, ROTATION.E);
         this.addEnemy(TestDummy, 5, 3, ROTATION.N);
@@ -245,6 +252,14 @@ export class GameState extends Phaser.State {
             return canPush
         }
 
+        let tile = this.tiles.find(t => {
+            return t.x === x && t.y === y;
+        });
+
+        if (tile && isBlocker(tile)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -273,7 +288,7 @@ export class GameState extends Phaser.State {
 
     }
 
-    isEmpty([x,y]): boolean {
+    isEmpty([x, y]): boolean {
         let player = this.player.mapX === x && this.player.mapY === y;
         let enemy = this.enemies.find(e => {
             return e.mapX === x && e.mapY === y;
