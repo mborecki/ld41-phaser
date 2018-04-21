@@ -7,7 +7,7 @@ import EmptyTile from '../sprites/tiles/empty';
 import SelectedActionsPanel from '../sprites/ui/selected-actions-panel';
 import AvailableActionsPanel from '../sprites/ui/available-actions-panel';
 import { ACTION } from '../action';
-import { moveForward, moveBack } from '../move';
+import { moveForward, moveBack, moveLeft, moveRight } from '../move';
 import { turn, TURN, ROTATION } from '../rotation';
 import Actor, { TAG } from '../actor';
 import Enemy from '../sprites/actors/enemy';
@@ -15,6 +15,18 @@ import TestDummy from '../sprites/actors/test-dummy';
 
 export class GameState extends Phaser.State {
 
+
+    pointsLabel: Phaser.Text;
+    _points = 0;
+
+    set points(v) {
+        this._points = v;
+        this.pointsLabel.setText(`${v}`);
+    }
+
+    get points() {
+        return this._points;
+    }
 
     actionsPerTurn = 4;
 
@@ -32,7 +44,7 @@ export class GameState extends Phaser.State {
 
     isOver = false;
 
-    borders = [0,0,0,0];
+    borders = [0, 0, 0, 0];
 
 
     init() {
@@ -57,6 +69,8 @@ export class GameState extends Phaser.State {
         this.initEnemies();
         this.initTiles();
         this.updateTilesSprites();
+
+
     }
 
     render() {
@@ -106,6 +120,10 @@ export class GameState extends Phaser.State {
 
         this.actorsLayer.add(enemy);
         this.enemies.push(enemy);
+
+        enemy.events.onKilled.add(() => {
+            this.points = this.points + 1;
+        })
     }
 
     updateTilesSprites() {
@@ -165,6 +183,11 @@ export class GameState extends Phaser.State {
             this.selectedActionsPanel.clearList();
             this.executeTurn();
         });
+
+        this.pointsLabel = new Phaser.Text(this.game, 10, 150, '');
+        this.points = 0;
+
+        this.UILayer.add(this.pointsLabel);
     }
 
     executeTurn() {
@@ -228,11 +251,22 @@ export class GameState extends Phaser.State {
                     [actor.mapX, actor.mapY],
                     actor.mapRotation
                 )
+            case ACTION.LEFT:
+                newPos = newPos || moveLeft(
+                    [actor.mapX, actor.mapY],
+                    actor.mapRotation
+                )
+            case ACTION.RIGHT:
+                newPos = newPos || moveRight(
+                    [actor.mapX, actor.mapY],
+                    actor.mapRotation
+                )
 
                 if (this.validateNewPosition(newPos, actor.mapRotation)) {
                     actor.mapMove(newPos);
                 }
                 break;
+
 
             case ACTION.TURN_LEFT:
                 actor.mapRotation = turn(actor.mapRotation, TURN.LEFT)
@@ -351,8 +385,6 @@ export class GameState extends Phaser.State {
         while (!hitSomething && !outOfBorders) {
             x = x + bulletStep[0];
             y = y + bulletStep[1];
-
-            debugger;
 
             outOfBorders =
                 x < this.borders[0] ||

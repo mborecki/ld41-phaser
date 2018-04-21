@@ -29,11 +29,13 @@ export class BootState extends Phaser.State {
 
 
         this.game.load.spritesheet('action-forward', './assets/placeholders/placeholders_12.png', 16, 16);
-        this.game.load.spritesheet('action-right', './assets/placeholders/placeholders_13.png', 16, 16);
-        this.game.load.spritesheet('action-left', './assets/placeholders/placeholders_14.png', 16, 16);
+        this.game.load.spritesheet('action-turn-right', './assets/placeholders/placeholders_13.png', 16, 16);
+        this.game.load.spritesheet('action-turn-left', './assets/placeholders/placeholders_14.png', 16, 16);
         this.game.load.spritesheet('action-back', './assets/placeholders/placeholders_15.png', 16, 16);
         this.game.load.spritesheet('action-around', './assets/placeholders/placeholders_16.png', 16, 16);
         this.game.load.spritesheet('action-shoot', './assets/placeholders/placeholders_17.png', 16, 16);
+        this.game.load.spritesheet('action-left', './assets/placeholders/placeholders_18.png', 16, 16);
+        this.game.load.spritesheet('action-right', './assets/placeholders/placeholders_19.png', 16, 16);
 
     }
 

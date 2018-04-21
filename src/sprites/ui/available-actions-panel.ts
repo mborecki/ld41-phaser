@@ -18,6 +18,8 @@ export default class AvailableActionsPanel extends Phaser.Sprite {
         let list = [
             ACTION.FORWARD,
             ACTION.BACK,
+            ACTION.LEFT,
+            ACTION.RIGHT,
             ACTION.TURN_LEFT,
             ACTION.TURN_RIGHT,
             ACTION.TURN_AROUND,
