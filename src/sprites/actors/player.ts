@@ -44,6 +44,8 @@ export default class Player extends Phaser.Sprite {
     }
 
     mapMove([x,y]) {
+        this.mapX = x;
+        this.mapY = y;
         this.x = tileToCanvas(x, y).x;
         this.y = tileToCanvas(x, y).y;
     }

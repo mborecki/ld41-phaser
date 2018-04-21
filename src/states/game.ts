@@ -73,11 +73,12 @@ export class GameState extends Phaser.State {
     }
 
     updateTilesSprites() {
+        console.log('updateTilesSprites', this.player.mapX, this.player.mapY)
         for (let i = this.player.mapX - SIGHT_RANGE; i <= this.player.mapX + SIGHT_RANGE; i++)
             for (let j = this.player.mapY - SIGHT_RANGE; j <= this.player.mapY + SIGHT_RANGE; j++) {
                 if (this.renderedTiles.find(rt => {
                     return rt[0] === i && rt[1] === j;
-                })) return;
+                })) continue;
 
                 let tile = this.tiles.find(t => {
                     return t.x === i && t.y === j;
@@ -127,6 +128,7 @@ export class GameState extends Phaser.State {
 
     executePlayerActions(actions: ACTION[]) {
         actions.forEach(action => {
+            console.log(ACTION[action]);
             switch (action) {
                 case ACTION.FORWARD:
                     this.player.mapMove(moveForward(
@@ -154,6 +156,8 @@ export class GameState extends Phaser.State {
                     this.player.mapRotation = turn(this.player.mapRotation, TURN.AROUND);
                     break;
             }
+
+            this.updateTilesSprites();
         })
     }
 }
