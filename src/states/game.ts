@@ -32,6 +32,8 @@ export class GameState extends Phaser.State {
 
     isOver = false;
 
+    borders = [0,0,0,0];
+
 
     init() {
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -134,6 +136,13 @@ export class GameState extends Phaser.State {
                 this.tilesSprites.push(sprite)
 
                 this.renderedTiles.push([i, j]);
+
+                this.borders = [
+                    Math.min(this.borders[0], i),
+                    Math.min(this.borders[1], j),
+                    Math.max(this.borders[2], i),
+                    Math.max(this.borders[3], j),
+                ]
             }
     }
 
@@ -180,6 +189,8 @@ export class GameState extends Phaser.State {
 
             // debugger;
             let executeFn = () => {
+                if (this.isOver) return;
+
                 let nextFn = fns.shift();
                 // debugger;
 
@@ -233,6 +244,10 @@ export class GameState extends Phaser.State {
 
             case ACTION.TURN_AROUND:
                 actor.mapRotation = turn(actor.mapRotation, TURN.AROUND);
+                break;
+
+            case ACTION.SHOOT:
+                this.shoot([actor.mapX, actor.mapY], actor.mapRotation);
                 break;
         }
     }
@@ -307,5 +322,53 @@ export class GameState extends Phaser.State {
         })
 
         return !(player || enemy || blocker);
+    }
+
+    shoot([x, y], direction: ROTATION) {
+        let bulletStep;
+
+        switch (direction) {
+            case ROTATION.N:
+                bulletStep = [0, -1];
+                break;
+
+            case ROTATION.E:
+                bulletStep = [1, 0];
+                break;
+
+            case ROTATION.S:
+                bulletStep = [0, 1];
+                break;
+
+            case ROTATION.W:
+                bulletStep = [-1, 0];
+                break;
+        }
+
+        let hitSomething = false;
+        let outOfBorders = false;
+
+        while (!hitSomething && !outOfBorders) {
+            x = x + bulletStep[0];
+            y = y + bulletStep[1];
+
+            debugger;
+
+            outOfBorders =
+                x < this.borders[0] ||
+                y < this.borders[1] ||
+                x > this.borders[2] ||
+                y > this.borders[3];
+
+            let actor = [...this.enemies, this.player].find(a => {
+                return a.mapX === x && a.mapY === y;
+            });
+
+            if (actor) {
+                hitSomething = true;
+                actor.kill();
+            }
+        }
+
     }
 }
