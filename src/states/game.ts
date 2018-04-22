@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser-ce'
 import Player from '../sprites/actors/player';
 import { Tile, TILE, isBlocker } from '../tile';
-import { SIGHT_RANGE, ACTIONS_PER_TURN, INTERACTION } from '../config';
+import { SIGHT_RANGE, ACTIONS_PER_TURN, INTERACTION, MAP_CENTER_X, MAP_CENTER_Y, TILE_WIDTH, TILE_HEIGHT, ANIMATION_TIME } from '../config';
 import Wall from '../sprites/tiles/wall';
 import EmptyTile from '../sprites/tiles/empty';
 import SelectedActionsPanel from '../sprites/ui/selected-actions-panel';
@@ -12,10 +12,13 @@ import { turn, TURN, ROTATION } from '../rotation';
 import Actor, { TAG } from '../actor';
 import Enemy from '../sprites/actors/enemy';
 import TestDummy from '../sprites/actors/test-dummy';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 export class GameState extends Phaser.State {
 
 
+    rerollButton: Phaser.Sprite;
+    mapLayer: Phaser.Group;
     pointsLabel: Phaser.Text;
     _points = 0;
 
@@ -46,6 +49,8 @@ export class GameState extends Phaser.State {
 
     borders = [0, 0, 0, 0];
 
+    rerollPosible = new BehaviorSubject<boolean>(true);
+
 
     init() {
         this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -56,19 +61,24 @@ export class GameState extends Phaser.State {
     preload() { }
 
     create() {
+        this.mapLayer = new Phaser.Group(this.game);
+
         this.tilesLayer = new Phaser.Group(this.game);
+        this.mapLayer.add(this.tilesLayer);
         this.actorsLayer = new Phaser.Group(this.game);
+        this.mapLayer.add(this.actorsLayer);
+
         this.UILayer = new Phaser.Group(this.game);
 
-        this.add.existing(this.tilesLayer);
-        this.add.existing(this.actorsLayer);
+        this.add.existing(this.mapLayer);
         this.add.existing(this.UILayer);
 
         this.initUI();
         this.initPlayer();
         this.initEnemies();
         this.initTiles();
-        this.updateTilesSprites();
+        this.updateMap();
+        this.centerMap();
     }
 
     render() {
@@ -124,6 +134,28 @@ export class GameState extends Phaser.State {
         })
     }
 
+    updateMap(animation = false) {
+        this.updateTilesSprites();
+    }
+
+    centerMap(animation = false) {
+        let x = -this.player.x - TILE_WIDTH / 2 + MAP_CENTER_X;
+        let y = -this.player.y - TILE_HEIGHT / 2 + MAP_CENTER_Y;
+
+        if (animation) {
+            let tween = this.game.add.tween(this.mapLayer).to({
+                x, y
+            }, 200);
+
+            tween.start();
+        } else {
+            this.mapLayer.x = x;
+            this.mapLayer.y = y;
+        }
+
+
+    }
+
     updateTilesSprites() {
         for (let i = this.player.mapX - SIGHT_RANGE; i <= this.player.mapX + SIGHT_RANGE; i++)
             for (let j = this.player.mapY - SIGHT_RANGE; j <= this.player.mapY + SIGHT_RANGE; j++) {
@@ -163,14 +195,40 @@ export class GameState extends Phaser.State {
     }
 
     initUI() {
+
+        this.add.image(0, 0, 'ui-frame', 0, this.UILayer);
+
         this.selectedActionsPanel = new SelectedActionsPanel(this.game);
         this.availableActionsPanel = new AvailableActionsPanel(this.game);
+
+        this.rerollButton = new Phaser.Sprite(this.game, 174, 441, 'reroll-button');
+        this.rerollButton.inputEnabled = true;
+        this.UILayer.add(this.rerollButton);
+
+        this.rerollButton.events.onInputDown.add(() => {
+            if (this.rerollPosible.getValue()) {
+                this.availableActionsPanel.reroll();
+                this.rerollPosible.next(false);
+            }
+        });
+
+        this.rerollPosible.subscribe(ready => {
+            if (ready) {
+                this.rerollButton.frame = 0;
+                this.rerollButton.input.useHandCursor = true;
+            } else {
+                this.rerollButton.frame = 2;
+                this.rerollButton.input.useHandCursor = false;
+            }
+        });
 
         this.UILayer.add(this.selectedActionsPanel);
         this.UILayer.add(this.availableActionsPanel);
 
-        this.selectedActionsPanel.y = 200;
-        this.availableActionsPanel.y = 300;
+        this.selectedActionsPanel.y = 437;
+        this.selectedActionsPanel.x = 682;
+
+        this.availableActionsPanel.y = 439;
 
         this.availableActionsPanel.onSelected.add((action: ACTION) => {
             this.selectedActionsPanel.addAction(action);
@@ -197,7 +255,7 @@ export class GameState extends Phaser.State {
 
             fns.push(() => {
                 this.executeActorAction(this.player);
-                this.updateTilesSprites();
+                this.updateMap(true);
             });
 
             this.enemies.forEach((enemy) => {
@@ -210,6 +268,7 @@ export class GameState extends Phaser.State {
 
             // debugger;
             let executeFn = () => {
+                console.log('executeFn')
                 if (this.isOver) return;
 
                 let nextFn = fns.shift();
@@ -219,11 +278,14 @@ export class GameState extends Phaser.State {
                     nextFn();
                     setTimeout(() => {
                         executeFn();
-                    }, 100);
+                    }, ANIMATION_TIME);
                 } else {
                     actionIndex++;
                     if (actionIndex < ACTIONS_PER_TURN) {
                         executeActionRound();
+                    } else {
+                        this.centerMap(true);
+
                     }
                 }
             }

@@ -3,37 +3,71 @@ import getActionSpriteKey from "./action/get-action-sprite-key";
 import ActionSprite from "./action/action-sprite";
 
 export default class AvailableActionsPanel extends Phaser.Sprite {
+    actions: Phaser.Group;
     onSelected = new Phaser.Signal();
+
+    posibleMoves = [
+        ACTION.FORWARD,
+        ACTION.BACK,
+        ACTION.LEFT,
+        ACTION.RIGHT,
+        ACTION.TURN_LEFT,
+        ACTION.TURN_RIGHT,
+        ACTION.TURN_AROUND,
+        ACTION.SHOOT
+    ]
+
+    list : ACTION[];
 
     constructor(game: Phaser.Game) {
         super(game, 0, 0);
 
-        this.addChild(new Phaser.Text(game, 0, 0, 'AvailableActionsPanel'))
+        this.actions = new Phaser.Group(this.game);
+        this.addChild(this.actions);
 
-        this.initActionsList();
+        this.reroll()
     }
 
-    initActionsList() {
+    reroll() {
 
-        let list = [
-            ACTION.FORWARD,
-            ACTION.BACK,
-            ACTION.LEFT,
-            ACTION.RIGHT,
-            ACTION.TURN_LEFT,
-            ACTION.TURN_RIGHT,
-            ACTION.TURN_AROUND,
-            ACTION.SHOOT
-        ]
+        this.list = this.getActions();
+        this.updateIcons();
+    }
 
-        list.forEach((action, index) => {
-            let sprite = new ActionSprite(this.game, 10 + index*20, 50, action);
+    getActions() : ACTION[] {
+
+        let result = []
+
+
+        while (result.length < 4) {
+            let random = Math.floor((Math.random() * 8));
+
+            if (result.indexOf(this.posibleMoves[random]) === -1) {
+                result.push(this.posibleMoves[random])
+            }
+        }
+
+        return result;
+
+
+        // return [
+        //     ACTION.FORWARD,
+        //     ACTION.BACK,
+        //     ACTION.LEFT,
+        //     ACTION.RIGHT];
+    }
+
+    updateIcons() {
+        this.actions.removeAll();
+
+        this.list.forEach((action, index) => {
+            let sprite = new ActionSprite(this.game, 11 + index * 40, 0, action);
 
             sprite.onSelected.add(() => {
                 this.onSelected.dispatch(action)
             });
 
-            this.addChild(sprite);
+            this.actions.add(sprite);
 
         });
     }
