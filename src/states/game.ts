@@ -69,8 +69,6 @@ export class GameState extends Phaser.State {
         this.initEnemies();
         this.initTiles();
         this.updateTilesSprites();
-
-
     }
 
     render() {

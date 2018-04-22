@@ -12,20 +12,22 @@ export class BootState extends Phaser.State {
         // here preload your assets!
         // this.load.image('testImage', './assets/images/test.jpg')
 
-        this.game.load.spritesheet('player-n', './assets/placeholders/placeholders_01.png', 16, 16);
-        this.game.load.spritesheet('player-e', './assets/placeholders/placeholders_02.png', 16, 16);
-        this.game.load.spritesheet('player-s', './assets/placeholders/placeholders_03.png', 16, 16);
-        this.game.load.spritesheet('player-w', './assets/placeholders/placeholders_04.png', 16, 16);
+        this.game.load.spritesheet('player-n', './assets/robots/robots_04.png', 32, 32);
+        this.game.load.spritesheet('player-e', './assets/robots/robots_03.png', 32, 32);
+        this.game.load.spritesheet('player-s', './assets/robots/robots_05.png', 32, 32);
+        this.game.load.spritesheet('player-w', './assets/robots/robots_06.png', 32, 32);
 
 
-        this.game.load.spritesheet('test-dummy-n', './assets/placeholders/placeholders_05.png', 16, 16);
-        this.game.load.spritesheet('test-dummy-e', './assets/placeholders/placeholders_06.png', 16, 16);
-        this.game.load.spritesheet('test-dummy-s', './assets/placeholders/placeholders_07.png', 16, 16);
-        this.game.load.spritesheet('test-dummy-w', './assets/placeholders/placeholders_08.png', 16, 16);
+        this.game.load.spritesheet('test-dummy-n', './assets/robots/robots_07.png', 32, 32);
+        this.game.load.spritesheet('test-dummy-e', './assets/robots/robots_09.png', 32, 32);
+        this.game.load.spritesheet('test-dummy-s', './assets/robots/robots_08.png', 32, 32);
+        this.game.load.spritesheet('test-dummy-w', './assets/robots/robots_10.png', 32, 32);
 
 
-        this.game.load.spritesheet('wall', './assets/placeholders/placeholders_09.png', 16, 16);
-        this.game.load.spritesheet('empty-tile', './assets/placeholders/placeholders_10.png', 16, 16);
+        this.game.load.spritesheet('wall', './assets/robots/robots_11.png', 32, 32);
+        this.game.load.spritesheet('empty-tile-1', './assets/robots/robots_00.png', 32, 32);
+        this.game.load.spritesheet('empty-tile-2', './assets/robots/robots_00.png', 32, 32);
+        this.game.load.spritesheet('empty-tile-3', './assets/robots/robots_00.png', 32, 32);
 
 
         this.game.load.spritesheet('action-forward', './assets/placeholders/placeholders_12.png', 16, 16);
