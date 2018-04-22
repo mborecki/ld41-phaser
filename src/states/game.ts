@@ -87,7 +87,7 @@ export class GameState extends Phaser.State {
     }
 
     initPlayer() {
-        this.player = new Player(this.game, 3, 3);
+        this.player = new Player(this.game, 0, 0);
         this.actorsLayer.add(this.player);
 
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON);
@@ -101,18 +101,7 @@ export class GameState extends Phaser.State {
     }
 
     initTiles() {
-        this.tiles.push(
-            {
-                x: 1,
-                y: 2,
-                type: TILE.WALL
-            },
-            {
-                x: 3,
-                y: 0,
-                type: TILE.WALL
-            }
-        );
+
     }
 
     initEnemies() {
@@ -168,12 +157,26 @@ export class GameState extends Phaser.State {
                 });
 
                 let sprite: Phaser.Sprite;
-                if (tile) {
-                    switch (tile.type) {
-                        case TILE.WALL:
-                            sprite = new Wall(this.game, i, j);
-                            break;
-                    }
+                if (Math.abs(i) < 2 && Math.abs(j) < 2) {
+                    sprite = new EmptyTile(this.game, i, j);
+                }
+
+                if (!sprite && Math.random() < .15) {
+                    this.tiles.push({
+                        x: i,
+                        y: j,
+                        type: TILE.WALL
+                    })
+                    sprite = new Wall(this.game, i, j);
+                }
+
+                if (!sprite && Math.random() < .1) {
+                    this.addEnemy(TestDummy, i, j, [
+                        ROTATION.N,
+                        ROTATION.E,
+                        ROTATION.S,
+                        ROTATION.W
+                    ][Math.floor(Math.random()*4)])
                 }
 
                 if (!sprite) {
@@ -268,7 +271,6 @@ export class GameState extends Phaser.State {
 
             // debugger;
             let executeFn = () => {
-                console.log('executeFn')
                 if (this.isOver) return;
 
                 let nextFn = fns.shift();

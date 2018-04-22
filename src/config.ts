@@ -10,4 +10,4 @@ export const GAME_HEIGHT = 480;
 export const MAX_GAME_WIDTH = 854 ;
 export const MAP_CENTER_X = GAME_WIDTH / 2;
 export const MAP_CENTER_Y = GAME_HEIGHT / 2;
-export const ANIMATION_TIME = 300;
+export const ANIMATION_TIME = 0;
